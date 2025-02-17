@@ -139,12 +139,13 @@ class RGB_pts
     };
 
     void           set_pos( const vec_3 &pos );
+    void           set_rgb( const vec_3 &rgb );
     void           set_smooth_pos( const vec_3 &pos );
     vec_3          get_pos(bool get_smooth = false);
     vec_3          get_rgb();
     vec_3          get_radiance();
     mat_3_3        get_rgb_cov();
-    pcl::PointXYZI get_pt();
+    pcl::PointXYZIRGBNormal get_pt();
     // void update_gray( const double gray, double obs_dis = 1.0 );
     int update_rgb( const vec_3 &rgb, const double obs_dis, const vec_3 obs_sigma, const double obs_time, const double current_exposure_time );
 
@@ -178,6 +179,7 @@ class RGB_Voxel
     vec_3                     m_short_axis;
     long                      m_meshing_times = 0;
     long                      m_new_added_pts_count = 0;
+    // voxel has some RGB_pt_ptr
     std::vector< RGB_pt_ptr > m_pts_in_grid;
     std::vector< Common_tools::Triangle_2 >      m_2d_pts_vec;
     // Triangle_set                           m_triangle_list_in_voxel;

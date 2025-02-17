@@ -101,9 +101,9 @@ class ImuProcess
   Eigen::Matrix<double, 12, 12> Q;
   void Process(const MeasureGroup &meas,  esekfom::esekf<state_ikfom, 12, input_ikfom> &kf_state, PointCloudXYZI::Ptr pcl_un_);
   #else
-  void Process(LidarMeasureGroup &lidar_meas, StatesGroup &stat, PointCloudXYZI::Ptr cur_pcl_un_);
-  void Process2(LidarMeasureGroup &lidar_meas, StatesGroup &stat, PointCloudXYZI::Ptr cur_pcl_un_);
-  void UndistortPcl(LidarMeasureGroup &lidar_meas, StatesGroup &state_inout, PointCloudXYZI &pcl_out);
+  void Process(LidarMeasureGroup &lidar_meas, StatesGroup &stat, PCLPointCloud::Ptr cur_pcl_un_);
+  void Process2(LidarMeasureGroup &lidar_meas, StatesGroup &stat, PCLPointCloud::Ptr cur_pcl_un_);
+  void UndistortPcl(LidarMeasureGroup &lidar_meas, StatesGroup &state_inout, PCLPointCloud &pcl_out);
   #endif
 
   ros::NodeHandle nh;
@@ -124,11 +124,11 @@ class ImuProcess
   void IMU_init(const MeasureGroup &meas, StatesGroup &state, int &N);
   // void UndistortPcl(const MeasureGroup &meas, StatesGroup &state_inout, PointCloudXYZI &pcl_in_out);
   void Forward(const MeasureGroup &meas, StatesGroup &state_inout, double pcl_beg_time, double end_time);
-  void Backward(const LidarMeasureGroup &lidar_meas, StatesGroup &state_inout, PointCloudXYZI &pcl_out);
-  void Forward_without_imu(LidarMeasureGroup &meas, StatesGroup &state_inout, PointCloudXYZI &pcl_out);
+  void Backward(const LidarMeasureGroup &lidar_meas, StatesGroup &state_inout, PCLPointCloud &pcl_out);
+  void Forward_without_imu(LidarMeasureGroup &meas, StatesGroup &state_inout, PCLPointCloud &pcl_out);
   #endif
 
-  PointCloudXYZI::Ptr cur_pcl_un_;
+  PCLPointCloud::Ptr cur_pcl_un_;
   sensor_msgs::ImuConstPtr last_imu_;
   // StatesGroup last_state;
   deque<sensor_msgs::ImuConstPtr> v_imu_;

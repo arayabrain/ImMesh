@@ -88,7 +88,7 @@ struct M_POINT
 
 typedef struct Plane
 {
-    pcl::PointXYZINormal          m_p_center;
+    PointType                     m_p_center;
     Eigen::Vector3d               m_center;
     Eigen::Vector3d               m_normal;
     Eigen::Matrix3d               m_covariance;

@@ -50,6 +50,7 @@ vec_3f        g_axis_min_max[ 2 ];
 struct Region_triangles_shader
 {
     std::vector< vec_3f >               m_triangle_pt_vec;
+    std::vector< vec_3f >               m_triangle_color_vec;
     Common_tools::Triangle_facet_shader m_triangle_facet_shader;
     int                                 m_need_init_shader = true;
     int                                 m_need_refresh_shader = true;
@@ -67,7 +68,8 @@ struct Region_triangles_shader
         std::unique_lock< std::mutex > lock( *m_mutex_ptr );
         if ( m_if_set_color )
         {
-            m_triangle_facet_shader.set_pointcloud( m_triangle_pt_vec, g_axis_min_max, 2 );
+            // m_triangle_facet_shader.set_pointcloud( m_triangle_pt_vec, g_axis_min_max, 2 );
+            m_triangle_facet_shader.set_pointcloud( m_triangle_pt_vec, m_triangle_color_vec);
         }
         else
         {
@@ -80,6 +82,7 @@ struct Region_triangles_shader
         // TODO: synchronized data buffer here:
         std::unique_lock< std::mutex > lock( *m_mutex_ptr );
         m_triangle_pt_vec.resize( tri_angle_set.size() * 3 );
+        m_triangle_color_vec.resize( tri_angle_set.size() * 3 );
         // cout << "Number of pt_size = " << m_triangle_pt_list.size() << endl;
         int count = 0;
         for ( Triangle_set::iterator it = tri_angle_set.begin(); it != tri_angle_set.end(); it++ )
@@ -92,12 +95,14 @@ struct Region_triangles_shader
                                                    g_ply_smooth_k, g_kd_tree_accept_pt_dis );
                 }
             }
-            vec_3 pt_a = g_map_rgb_pts_mesh.m_rgb_pts_vec[ ( *it )->m_tri_pts_id[ 0 ] ]->get_pos( 1 );
-            vec_3 pt_b = g_map_rgb_pts_mesh.m_rgb_pts_vec[ ( *it )->m_tri_pts_id[ 1 ] ]->get_pos( 1 );
-            vec_3 pt_c = g_map_rgb_pts_mesh.m_rgb_pts_vec[ ( *it )->m_tri_pts_id[ 2 ] ]->get_pos( 1 );
-            m_triangle_pt_vec[ count ] = pt_a.cast< float >();
-            m_triangle_pt_vec[ count + 1 ] = pt_b.cast< float >();
-            m_triangle_pt_vec[ count + 2 ] = pt_c.cast< float >();
+            for (size_t pt_idx = 0; pt_idx < 3; pt_idx++) {
+                RGB_pt_ptr  pt_ptr = g_map_rgb_pts_mesh.m_rgb_pts_vec[(*it)->m_tri_pts_id[pt_idx]];
+                vec_3 pos = pt_ptr->get_pos(1);
+                vec_3 rgb = pt_ptr->get_rgb();
+                // std::cout << "rgb_vec3f:" << rgb << std::endl;
+                m_triangle_pt_vec[count + pt_idx] = pos.cast<float>();
+                m_triangle_color_vec[count + pt_idx] = rgb.cast<float>();
+            }
             count = count + 3;
         }
     }

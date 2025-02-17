@@ -234,10 +234,13 @@ int main( int argc, char **argv )
     cout << "Offline point cloud name: " << ANSI_COLOR_GREEN_BOLD << voxel_mapping.m_pointcloud_file_name << ANSI_COLOR_RESET << endl;
     if ( Common_tools::if_file_exist( voxel_mapping.m_pointcloud_file_name ) )
     {
-        pcl::PointCloud< pcl::PointXYZI > offline_pts;
+        PCLPointCloud offline_pts;
         cout << "Loading data..." ;
         fflush( stdout );
         pcl::io::loadPCDFile( voxel_mapping.m_pointcloud_file_name, offline_pts );
+        // std::cout << offline_pts.points[0].x << " " << offline_pts.points[0].y << " " << offline_pts.points[0].z << std::endl;
+        // std::cout << (int)offline_pts.points[0].r << " " << (int)offline_pts.points[0].g << " " << (int)offline_pts.points[0].b << std::endl;
+        // std::cout << offline_pts.points[0].intensity << std::endl;
         cout << " total of pts = " << offline_pts.points.size() << endl;
         cout << "g_map_rgb_pts_mesh.m_minimum_pts_size = " << g_map_rgb_pts_mesh.m_minimum_pts_size << endl;
         reconstruct_mesh_from_pointcloud( offline_pts.makeShared() );

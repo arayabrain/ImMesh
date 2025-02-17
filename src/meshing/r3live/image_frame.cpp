@@ -249,7 +249,6 @@ double Image_frame::get_grey_color( double &u, double &v, int layer )
     }
     else
     {
-        // TODO
         while ( 1 )
         {
             cout << "To be process here" << __LINE__ << endl;

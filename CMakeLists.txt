@@ -107,6 +107,16 @@ add_definitions(-DFONT_DIR=\"${FONTPATH}/\")
 set(SHADERPATH ${CMAKE_CURRENT_SOURCE_DIR}/src/shader/)
 add_definitions(-DSHADER_DIR=\"${SHADERPATH}/\")
 
+add_library(custom_point_types
+    src/custom_point_types.cpp
+)
+target_include_directories(custom_point_types PUBLIC
+    ${PCL_INCLUDE_DIRS}
+)
+target_link_libraries(custom_point_types
+    ${PCL_LIBRARIES}
+)
+
 add_executable(ImMesh_mapping
   src/ImMesh_node.cpp
   src/ImMesh_mesh_reconstruction.cpp
@@ -149,4 +159,5 @@ target_link_libraries(ImMesh_mapping
                       pcl_io
                       pcl_filters
                       pcl_kdtree
+                      custom_point_types
                       GL GLU glfw X11 Xrandr pthread Xi dl Xinerama Xcursor)

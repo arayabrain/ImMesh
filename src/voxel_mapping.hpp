@@ -93,11 +93,11 @@ void updateVoxelMap( const std::vector< Point_with_var > &input_points, const fl
 void build_single_residual( const Point_with_var &pv, const OctoTree *current_octo, const int current_layer, const int max_layer,
                             const double sigma_num, bool &is_sucess, double &prob, ptpl &single_ptpl );
 
-void transformLidar( const Eigen::Matrix3d rot, const Eigen::Vector3d t, const PointCloudXYZI::Ptr &input_cloud,
-                     pcl::PointCloud< pcl::PointXYZI >::Ptr &trans_cloud );
+void transformLidar( const Eigen::Matrix3d rot, const Eigen::Vector3d t, const PCLPointCloud::Ptr &input_cloud,
+                     pcl::PointCloud< PointType >::Ptr &trans_cloud );
 
 void BuildPtplList( const unordered_map< VOXEL_LOC, OctoTree * > &feat_map, const float match_eigen_value, const int layer, const float voxel_size,
-                    const float match_constraint, const Eigen::Matrix3d rot, const Eigen::Vector3d t, const PointCloudXYZI::Ptr input_cloud,
+                    const float match_constraint, const Eigen::Matrix3d rot, const Eigen::Vector3d t, const PCLPointCloud::Ptr input_cloud,
                     std::vector< ptpl > &ptpl_list );
 
 void BuildResidualListOMP( const unordered_map< VOXEL_LOC, OctoTree * > &voxel_map, const double voxel_size, const double sigma_num,
@@ -108,27 +108,27 @@ void BuildResidualList( const unordered_map< VOXEL_LOC, OctoTree * > &feat_map, 
                         const Point_with_var &pv, const M3D &rot, const V3D &t, const M3D &ext_R, const V3D &ext_T, ptpl &ptpl_list );
 
 void BuildOptiList( const unordered_map< VOXEL_LOC, OctoTree * > &feat_map, const float voxel_size, const Eigen::Matrix3d rot,
-                    const Eigen::Vector3d t, const PointCloudXYZI::Ptr input_cloud, const float sigma_num,
+                    const Eigen::Vector3d t, const PCLPointCloud::Ptr input_cloud, const float sigma_num,
                     const std::vector< Eigen::Matrix3d > var_list, std::vector< ptpl > &ptpl_list );
 
 void CalcQuation( const Eigen::Vector3d &vec, const int axis, geometry_msgs::Quaternion &q );
 
 void NormalToQuaternion( const Eigen::Vector3d &normal_vec, geometry_msgs::Quaternion &q );
 
-void pubNormal( visualization_msgs::MarkerArray &normal_pub, const std::string normal_ns, const int normal_id, const pcl::PointXYZINormal normal_p,
+void pubNormal( visualization_msgs::MarkerArray &normal_pub, const std::string normal_ns, const int normal_id, const PointType normal_p,
                 const float alpha, const Eigen::Vector3d rgb );
 
-void pubPlane( visualization_msgs::MarkerArray &plane_pub, const std::string plane_ns, const int plane_id, const pcl::PointXYZINormal normal_p,
+void pubPlane( visualization_msgs::MarkerArray &plane_pub, const std::string plane_ns, const int plane_id, const PointType normal_p,
                const float radius, const float min_eigen_value, const float alpha, const Eigen::Vector3d rgb );
 
 void pubPlaneMap( const std::unordered_map< VOXEL_LOC, OctoTree * > &feat_map, const ros::Publisher &plane_map_pub, const V3D &position );
 
 // Similar with PCL voxelgrid filter
-void down_sampling_voxel( pcl::PointCloud< pcl::PointXYZI > &pl_feat, double voxel_size );
+void down_sampling_voxel( pcl::PointCloud< PointType > &pl_feat, double voxel_size );
 
 void calcBodyVar( Eigen::Vector3d &pb, const float range_inc, const float degree_inc, Eigen::Matrix3d &var );
 
-void reconstruct_mesh_from_pointcloud( pcl::PointCloud< pcl::PointXYZI >::Ptr frame_pts, double minimum_pts_distance = 0.01 );
+void reconstruct_mesh_from_pointcloud( pcl::PointCloud< PointType >::Ptr frame_pts, double minimum_pts_distance = 0.01 );
 class Voxel_mapping
 {
   public:
@@ -204,7 +204,7 @@ class Voxel_mapping
     vector< BoxPointType > m_cub_need_rm;
     vector< BoxPointType > m_cub_need_add;
     // deque<sensor_msgs::PointCloud2::ConstPtr> lidar_buffer;
-    deque< PointCloudXYZI::Ptr >        m_lidar_buffer;
+    deque< PCLPointCloud::Ptr >        m_lidar_buffer;
     deque< double >                     m_time_buffer;
     deque< sensor_msgs::Imu::ConstPtr > m_imu_buffer;
     deque< cv::Mat >                    m_img_buffer;
@@ -218,29 +218,29 @@ class Voxel_mapping
     bool                                m_flg_EKF_inited, m_flg_EKF_converged, m_EKF_stop_flg = 0;
 
     // surf feature in map
-    PointCloudXYZI::Ptr m_featsFromMap = nullptr;
-    PointCloudXYZI::Ptr m_cube_points_add = nullptr;
-    PointCloudXYZI::Ptr m_map_cur_frame_point = nullptr;
-    PointCloudXYZI::Ptr m_sub_map_cur_frame_point = nullptr;
+    PCLPointCloud::Ptr m_featsFromMap = nullptr;
+    PCLPointCloud::Ptr m_cube_points_add = nullptr;
+    PCLPointCloud::Ptr m_map_cur_frame_point = nullptr;
+    PCLPointCloud::Ptr m_sub_map_cur_frame_point = nullptr;
 
-    PointCloudXYZI::Ptr m_feats_undistort = nullptr;
-    PointCloudXYZI::Ptr m_feats_down_body = nullptr;
-    PointCloudXYZI::Ptr m_feats_down_world = nullptr;
-    PointCloudXYZI::Ptr m_normvec = nullptr;
-    PointCloudXYZI::Ptr m_laserCloudOri = nullptr;
-    PointCloudXYZI::Ptr m_corr_normvect = nullptr;
+    PCLPointCloud::Ptr m_feats_undistort = nullptr;
+    PCLPointCloud::Ptr m_feats_down_body = nullptr;
+    PCLPointCloud::Ptr m_feats_down_world = nullptr;
+    PCLPointCloud::Ptr m_normvec = nullptr;
+    PCLPointCloud::Ptr m_laserCloudOri = nullptr;
+    PCLPointCloud::Ptr m_corr_normvect = nullptr;
 
     ofstream m_fout_pre, m_fout_out, m_fout_dbg, m_fout_pcd_pos, m_fout_img_pos;
 
     pcl::VoxelGrid< PointType > m_downSizeFilterSurf;
     // pcl::VoxelGrid<PointType> downSizeFilterMap;
 
-    PointCloudXYZI::Ptr      m_pcl_wait_pub = nullptr;
-    PointCloudXYZI::Ptr      m_pcl_wait_save = nullptr;
+    PCLPointCloud::Ptr      m_pcl_wait_pub = nullptr;
+    PCLPointCloud::Ptr      m_pcl_wait_save = nullptr;
     shared_ptr< Preprocess > m_p_pre = nullptr;
 
-    PointCloudXYZI::Ptr m_pcl_visual_wait_pub = nullptr;
-    PointCloudXYZI::Ptr m_sub_pcl_visual_wait_pub = nullptr;
+    PCLPointCloud::Ptr m_pcl_visual_wait_pub = nullptr;
+    PCLPointCloud::Ptr m_sub_pcl_visual_wait_pub = nullptr;
 
     vector< double > m_extrin_T;
     vector< double > m_extrin_R;
@@ -294,25 +294,25 @@ class Voxel_mapping
         m_camera_extrin_T = std::vector< double >( 3, 0.0 );
         m_camera_extrin_R = std::vector< double >( 9, 0.0 );
 
-        m_featsFromMap = PointCloudXYZI().makeShared();
-        m_cube_points_add = PointCloudXYZI().makeShared();
-        m_map_cur_frame_point = PointCloudXYZI().makeShared();
-        m_sub_map_cur_frame_point = PointCloudXYZI().makeShared();
+        m_featsFromMap = PCLPointCloud().makeShared();
+        m_cube_points_add = PCLPointCloud().makeShared();
+        m_map_cur_frame_point = PCLPointCloud().makeShared();
+        m_sub_map_cur_frame_point = PCLPointCloud().makeShared();
 
-        m_feats_undistort = PointCloudXYZI().makeShared();
-        m_feats_down_body = PointCloudXYZI().makeShared();
-        m_feats_down_world = PointCloudXYZI().makeShared();
+        m_feats_undistort = PCLPointCloud().makeShared();
+        m_feats_down_body = PCLPointCloud().makeShared();
+        m_feats_down_world = PCLPointCloud().makeShared();
 
-        m_normvec = PointCloudXYZI( 100000, 1 ).makeShared();
-        m_laserCloudOri = PointCloudXYZI( 100000, 1 ).makeShared();
-        m_corr_normvect = PointCloudXYZI( 100000, 1 ).makeShared();
+        m_normvec = PCLPointCloud( 100000, 1 ).makeShared();
+        m_laserCloudOri = PCLPointCloud( 100000, 1 ).makeShared();
+        m_corr_normvect = PCLPointCloud( 100000, 1 ).makeShared();
 
-        m_pcl_wait_pub = PointCloudXYZI( 500000, 1 ).makeShared();
-        m_pcl_wait_save = PointCloudXYZI().makeShared();
+        m_pcl_wait_pub = PCLPointCloud( 500000, 1 ).makeShared();
+        m_pcl_wait_save = PCLPointCloud().makeShared();
         m_p_pre = std::make_shared< Preprocess >();
 
-        m_pcl_visual_wait_pub = PointCloudXYZI( 500000, 1 ).makeShared();
-        m_sub_pcl_visual_wait_pub = PointCloudXYZI( 500000, 1 ).makeShared();
+        m_pcl_visual_wait_pub = PCLPointCloud( 500000, 1 ).makeShared();
+        m_sub_pcl_visual_wait_pub = PCLPointCloud( 500000, 1 ).makeShared();
     }
 
     void kitti_log( FILE *fp );
@@ -342,7 +342,7 @@ class Voxel_mapping
         return po;
     }
 
-    void frameBodyToWorld( const PointCloudXYZI::Ptr &pi, PointCloudXYZI::Ptr &po );
+    void frameBodyToWorld( const PCLPointCloud::Ptr &pi, PCLPointCloud::Ptr &po );
 
     void get_NED_transform();
 
@@ -364,7 +364,7 @@ class Voxel_mapping
 
     void map_incremental_grow();
 
-    void publish_voxel_point( const ros::Publisher &pubLaserCloudVoxel, const PointCloudXYZI::Ptr &pcl_wait_pub );
+    void publish_voxel_point( const ros::Publisher &pubLaserCloudVoxel, const PCLPointCloud::Ptr &pcl_wait_pub );
 
     void publish_visual_world_map( const ros::Publisher &pubVisualCloud );
 
@@ -403,8 +403,8 @@ class Voxel_mapping
 
     void read_ros_parameters( ros::NodeHandle &nh );
 
-    void transformLidar( const Eigen::Matrix3d rot, const Eigen::Vector3d t, const PointCloudXYZI::Ptr &input_cloud,
-                         pcl::PointCloud< pcl::PointXYZI >::Ptr &trans_cloud );
+    void transformLidar( const Eigen::Matrix3d rot, const Eigen::Vector3d t, const PCLPointCloud::Ptr &input_cloud,
+                         pcl::PointCloud< PointType >::Ptr &trans_cloud );
 
     bool voxel_map_init();
 

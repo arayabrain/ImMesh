@@ -40,6 +40,48 @@ different license.
 */
 #include "voxel_mapping.hpp"
 
+void customToROSMsg(const pcl::PointCloud<PointType>& cloud, sensor_msgs::PointCloud2& msg) {
+    // メタデータの設定
+    msg.header = pcl_conversions::fromPCL(cloud.header);
+    msg.height = 1;
+    msg.width = cloud.points.size();
+    
+    // フィールドの定義
+    // msg.fields.resize(4);
+    msg.fields.resize(5);
+    msg.fields[0].name = "x"; msg.fields[0].offset = 0; msg.fields[0].datatype = sensor_msgs::PointField::FLOAT32; msg.fields[0].count = 1;
+    msg.fields[1].name = "y"; msg.fields[1].offset = 4; msg.fields[1].datatype = sensor_msgs::PointField::FLOAT32; msg.fields[1].count = 1;
+    msg.fields[2].name = "z"; msg.fields[2].offset = 8; msg.fields[2].datatype = sensor_msgs::PointField::FLOAT32; msg.fields[2].count = 1;
+    msg.fields[3].name = "rgb"; msg.fields[3].offset = 12; msg.fields[3].datatype = sensor_msgs::PointField::FLOAT32; msg.fields[3].count = 1;
+    msg.fields[4].name = "intensity"; msg.fields[4].offset = 16; msg.fields[4].datatype = sensor_msgs::PointField::FLOAT32; msg.fields[4].count = 1;
+
+    msg.is_bigendian = false;
+    // msg.point_step = 16;
+    msg.point_step = 20;
+    msg.row_step = msg.point_step * msg.width;
+    msg.is_dense = true;
+
+    // データの準備
+    std::vector<float> cloud_data;
+    // cloud_data.reserve(cloud.points.size() * 4);  // x, y, z, rgb for each point
+    cloud_data.reserve(cloud.points.size() * 5);  // x, y, z, rgb, intensity for each point
+
+    for (const PointType& point : cloud.points) {
+        cloud_data.push_back(point.x);
+        cloud_data.push_back(point.y);
+        cloud_data.push_back(point.z);
+        uint32_t rgb = ((uint32_t)point.r << 16 | (uint32_t)point.g << 8 | (uint32_t)point.b);
+        float rgb_float;
+        memcpy(&rgb_float, &rgb, sizeof(float));
+        cloud_data.push_back(rgb_float);
+        cloud_data.push_back(point.intensity);
+    }
+
+    // データのコピー
+    msg.data.resize(cloud_data.size() * sizeof(float));
+    memcpy(msg.data.data(), cloud_data.data(), msg.data.size());
+}
+
 void Voxel_mapping::kitti_log( FILE *fp )
 {
     // Eigen::Matrix4d T_lidar_to_cam;
@@ -130,7 +172,7 @@ void Voxel_mapping::pointBodyToWorld( const PointType &pi, PointType &po )
     po.intensity = pi.intensity;
 }
 
-void Voxel_mapping::frameBodyToWorld( const PointCloudXYZI::Ptr &pi, PointCloudXYZI::Ptr &po )
+void Voxel_mapping::frameBodyToWorld( const PCLPointCloud::Ptr &pi, PCLPointCloud::Ptr &po )
 {
     int pi_size = pi->points.size();
     po->resize( pi_size );
@@ -299,7 +341,7 @@ void Voxel_mapping::standard_pcl_cbk( const sensor_msgs::PointCloud2::ConstPtr &
         m_lidar_buffer.clear();
     }
     // ROS_INFO("get point cloud at time: %.6f", msg->header.stamp.toSec());
-    PointCloudXYZI::Ptr ptr( new PointCloudXYZI() );
+    PCLPointCloud::Ptr ptr( new PCLPointCloud() );
     m_p_pre->process( msg, ptr );
     m_lidar_buffer.push_back( ptr );
     m_time_buffer.push_back( msg->header.stamp.toSec() );
@@ -321,7 +363,7 @@ void Voxel_mapping::livox_pcl_cbk( const livox_ros_driver::CustomMsg::ConstPtr &
         m_lidar_buffer.clear();
     }
     // ROS_INFO("get point cloud at time: %.6f", msg->header.stamp.toSec());
-    PointCloudXYZI::Ptr ptr( new PointCloudXYZI() );
+    PCLPointCloud::Ptr ptr( new PCLPointCloud() );
     m_p_pre->process( msg, ptr );
     m_lidar_buffer.push_back( ptr );
     m_time_buffer.push_back( msg->header.stamp.toSec() );
@@ -440,13 +482,13 @@ bool Voxel_mapping::sync_packages( LidarMeasureGroup &meas )
     return true;
 }
 
-void Voxel_mapping::publish_voxel_point( const ros::Publisher &pubLaserCloudVoxel, const PointCloudXYZI::Ptr &pcl_wait_pub )
+void Voxel_mapping::publish_voxel_point( const ros::Publisher &pubLaserCloudVoxel, const PCLPointCloud::Ptr &pcl_wait_pub )
 {
     uint                  size = pcl_wait_pub->points.size();
-    PointCloudXYZRGB::Ptr laserCloudWorldRGB( new PointCloudXYZRGB( size, 1 ) );
+    PCLPointCloud::Ptr laserCloudWorldRGB( new PCLPointCloud( size, 1 ) );
     for ( int i = 0; i < size; i++ )
     {
-        PointTypeRGB pointRGB;
+        PointType pointRGB;
 
         pointRGB.x = pcl_wait_pub->points[ i ].x;
         pointRGB.y = pcl_wait_pub->points[ i ].y;
@@ -464,11 +506,11 @@ void Voxel_mapping::publish_voxel_point( const ros::Publisher &pubLaserCloudVoxe
     if ( m_img_en )
     {
         cout << "RGB pointcloud size: " << laserCloudWorldRGB->size() << endl;
-        pcl::toROSMsg( *laserCloudWorldRGB, laserCloudmsg );
+        customToROSMsg( *laserCloudWorldRGB, laserCloudmsg );
     }
     else
     {
-        pcl::toROSMsg( *pcl_wait_pub, laserCloudmsg );
+        customToROSMsg( *pcl_wait_pub, laserCloudmsg );
     }
     laserCloudmsg.header.stamp = ros::Time::now(); //.fromSec(last_timestamp_lidar);
     laserCloudmsg.header.frame_id = "camera_init";
@@ -478,7 +520,7 @@ void Voxel_mapping::publish_voxel_point( const ros::Publisher &pubLaserCloudVoxe
 
 void Voxel_mapping::publish_visual_world_map( const ros::Publisher &pubVisualCloud )
 {
-    PointCloudXYZI::Ptr laserCloudFullRes( m_map_cur_frame_point );
+    PCLPointCloud::Ptr laserCloudFullRes( m_map_cur_frame_point );
     int                 size = laserCloudFullRes->points.size();
     if ( size == 0 )
         return;
@@ -494,7 +536,7 @@ void Voxel_mapping::publish_visual_world_map( const ros::Publisher &pubVisualClo
     if ( 1 ) // if(publish_count >= PUBFRAME_PERIOD)
     {
         sensor_msgs::PointCloud2 laserCloudmsg;
-        pcl::toROSMsg( *m_pcl_visual_wait_pub, laserCloudmsg );
+        customToROSMsg( *m_pcl_visual_wait_pub, laserCloudmsg );
         laserCloudmsg.header.stamp = ros::Time::now(); //.fromSec(last_timestamp_lidar);
         laserCloudmsg.header.frame_id = "camera_init";
         pubVisualCloud.publish( laserCloudmsg );
@@ -506,7 +548,7 @@ void Voxel_mapping::publish_visual_world_map( const ros::Publisher &pubVisualClo
 
 void Voxel_mapping::publish_visual_world_sub_map( const ros::Publisher &pubSubVisualCloud )
 {
-    PointCloudXYZI::Ptr laserCloudFullRes( m_sub_map_cur_frame_point );
+    PCLPointCloud::Ptr laserCloudFullRes( m_sub_map_cur_frame_point );
     int                 size = laserCloudFullRes->points.size();
     if ( size == 0 )
         return;
@@ -522,7 +564,7 @@ void Voxel_mapping::publish_visual_world_sub_map( const ros::Publisher &pubSubVi
     if ( 1 ) // if(publish_count >= PUBFRAME_PERIOD)
     {
         sensor_msgs::PointCloud2 laserCloudmsg;
-        pcl::toROSMsg( *m_sub_pcl_visual_wait_pub, laserCloudmsg );
+        customToROSMsg( *m_sub_pcl_visual_wait_pub, laserCloudmsg );
         laserCloudmsg.header.stamp = ros::Time::now(); //.fromSec(last_timestamp_lidar);
         laserCloudmsg.header.frame_id = "camera_init";
         pubSubVisualCloud.publish( laserCloudmsg );
@@ -534,13 +576,13 @@ void Voxel_mapping::publish_visual_world_sub_map( const ros::Publisher &pubSubVi
 
 void Voxel_mapping::publish_effect_world( const ros::Publisher &pubLaserCloudEffect )
 {
-    PointCloudXYZI::Ptr laserCloudWorld( new PointCloudXYZI( m_effct_feat_num, 1 ) );
+    PCLPointCloud::Ptr laserCloudWorld( new PCLPointCloud( m_effct_feat_num, 1 ) );
     for ( int i = 0; i < m_effct_feat_num; i++ )
     {
         RGBpointBodyToWorld( &m_laserCloudOri->points[ i ], &laserCloudWorld->points[ i ] );
     }
     sensor_msgs::PointCloud2 laserCloudFullRes3;
-    pcl::toROSMsg( *laserCloudWorld, laserCloudFullRes3 );
+    customToROSMsg( *laserCloudWorld, laserCloudFullRes3 );
     laserCloudFullRes3.header.stamp = ros::Time::now(); //.fromSec(last_timestamp_lidar);
     laserCloudFullRes3.header.frame_id = "camera_init";
     pubLaserCloudEffect.publish( laserCloudFullRes3 );
@@ -549,7 +591,7 @@ void Voxel_mapping::publish_effect_world( const ros::Publisher &pubLaserCloudEff
 void Voxel_mapping::publish_map( const ros::Publisher &pubLaserCloudMap )
 {
     sensor_msgs::PointCloud2 laserCloudMap;
-    pcl::toROSMsg( *m_featsFromMap, laserCloudMap );
+    customToROSMsg( *m_featsFromMap, laserCloudMap );
     laserCloudMap.header.stamp = ros::Time::now();
     laserCloudMap.header.frame_id = "camera_init";
     pubLaserCloudMap.publish( laserCloudMap );
@@ -594,20 +636,20 @@ void Voxel_mapping::publish_mavros( const ros::Publisher &mavros_pose_publisher 
 
 void Voxel_mapping::publish_frame_world( const ros::Publisher &pubLaserCloudFullRes, const int point_skip )
 {
-    PointCloudXYZI::Ptr laserCloudFullRes( m_dense_map_en ? m_feats_undistort : m_feats_down_body );
+    PCLPointCloud::Ptr laserCloudFullRes( m_dense_map_en ? m_feats_undistort : m_feats_down_body );
     int                 size = laserCloudFullRes->points.size();
-    PointCloudXYZI::Ptr laserCloudWorld( new PointCloudXYZI( size, 1 ) );
+    PCLPointCloud::Ptr laserCloudWorld( new PCLPointCloud( size, 1 ) );
     for ( int i = 0; i < size; i++ )
     {
         RGBpointBodyToWorld( &laserCloudFullRes->points[ i ], &laserCloudWorld->points[ i ] );
     }
-    PointCloudXYZI::Ptr laserCloudWorldPub( new PointCloudXYZI );
+    PCLPointCloud::Ptr laserCloudWorldPub( new PCLPointCloud );
     for ( int i = 0; i < size; i += point_skip )
     {
         laserCloudWorldPub->points.push_back( laserCloudWorld->points[ i ] );
     }
     sensor_msgs::PointCloud2 laserCloudmsg;
-    pcl::toROSMsg( *laserCloudWorldPub, laserCloudmsg );
+    customToROSMsg( *laserCloudWorldPub, laserCloudmsg );
     laserCloudmsg.header.stamp = ros::Time::now(); //.fromSec(last_timestamp_lidar);
     laserCloudmsg.header.frame_id = "camera_init";
     pubLaserCloudFullRes.publish( laserCloudmsg );
@@ -706,21 +748,22 @@ void Voxel_mapping::read_ros_parameters( ros::NodeHandle &nh )
     cout << "Meshing distance scale:" << m_meshing_distance_scale << " , points minimum scale:" << m_meshing_points_minimum_scale << std::endl;
 }
 
-void Voxel_mapping::transformLidar( const Eigen::Matrix3d rot, const Eigen::Vector3d t, const PointCloudXYZI::Ptr &input_cloud,
-                                    pcl::PointCloud< pcl::PointXYZI >::Ptr &trans_cloud )
+void Voxel_mapping::transformLidar( const Eigen::Matrix3d rot, const Eigen::Vector3d t, const PCLPointCloud::Ptr &input_cloud,
+                                    PCLPointCloud::Ptr &trans_cloud )
 {
     trans_cloud->clear();
     for ( size_t i = 0; i < input_cloud->size(); i++ )
     {
-        pcl::PointXYZINormal p_c = input_cloud->points[ i ];
+        PointType p_c = input_cloud->points[ i ];
         Eigen::Vector3d      p( p_c.x, p_c.y, p_c.z );
         // p = rot * p + t;
         p = ( rot * ( m_extR * p + m_extT ) + t );
-        pcl::PointXYZI pi;
+        PointType pi;
         pi.x = p( 0 );
         pi.y = p( 1 );
         pi.z = p( 2 );
         pi.intensity = p_c.intensity;
+        pi.rgb = p_c.rgb;
         trans_cloud->points.push_back( pi );
     }
 }

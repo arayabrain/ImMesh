@@ -1,5 +1,6 @@
 <launch>
 	<arg name="rviz" default="false" />
+	<param name="pc_name" type="string" value="" />
 	<rosparam command="load" file="$(find ImMesh)/config/avia.yaml" />
 	<param name="meshing/distance_scale" type="double" value="1.0" /> 
 	<param name="gui_font_size" type="int" value="20" /> 

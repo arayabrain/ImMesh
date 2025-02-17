@@ -34,8 +34,7 @@ typedef std::vector< std::pair< std::vector< vec_4 >, Eigen::Matrix< double, NUM
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel                     K;
 
-typedef pcl::PointXYZINormal  PointType ;
-using PointVector = std::vector< PointType, Eigen::aligned_allocator< PointType > >;
+using PointVector = std::vector< pcl::PointXYZIRGBNormal, Eigen::aligned_allocator< pcl::PointXYZIRGBNormal > >;
 
 void save_to_ply_file(std::string ply_file = std::string("/home/ziv/temp/ply/rec_mesh_smoothed.ply"), double smooth_factor = 0.1, double knn = 20);
 void smooth_all_pts(double smooth_factor = 0.1, double knn = 20);

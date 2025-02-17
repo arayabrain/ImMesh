@@ -46,6 +46,7 @@ Dr. Fu Zhang < fuzhang@hku.hk >.
  POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "custom_point_types.h"
 #include "pointcloud_rgbd.hpp"
 #include "../optical_flow/lkpyramid.hpp"
 extern Common_tools::Cost_time_logger              g_cost_time_logger;
@@ -62,6 +63,14 @@ void RGB_pts::set_pos( const vec_3& pos )
     {
         m_pos[ i ] = pos( i );
         m_pos_aft_smooth[ i ] = pos( i );
+    }
+}
+
+void RGB_pts::set_rgb( const vec_3& rgb )
+{
+    for ( size_t i = 0; i < 3; i++ )
+    {
+        m_rgb[ i ] = rgb( i );
     }
 }
 
@@ -98,6 +107,7 @@ mat_3_3 RGB_pts::get_rgb_cov()
 
 vec_3 RGB_pts::get_rgb()
 {
+    // std::cout << (int)m_rgb[0] << " " << (int)m_rgb[1] << " " << (int)m_rgb[2] << std::endl;
     return vec_3( m_rgb[ 0 ], m_rgb[ 1 ], m_rgb[ 2 ] ) / m_first_obs_exposure_time;
 }
 
@@ -106,9 +116,9 @@ vec_3 RGB_pts::get_radiance()
     return vec_3( m_rgb[ 0 ], m_rgb[ 1 ], m_rgb[ 2 ] );
 }
 
-pcl::PointXYZI RGB_pts::get_pt()
+pcl::PointXYZIRGBNormal RGB_pts::get_pt()
 {
-    pcl::PointXYZI pt;
+    pcl::PointXYZIRGBNormal pt;
     pt.x = m_pos[ 0 ];
     pt.y = m_pos[ 1 ];
     pt.z = m_pos[ 2 ];
@@ -385,13 +395,15 @@ bool Global_map::is_busy()
     return m_in_appending_pts;
 }
 
-template int Global_map::append_points_to_global_map< pcl::PointXYZI >( pcl::PointCloud< pcl::PointXYZI >& pc_in, double added_time,
-                                                                        std::vector< std::shared_ptr< RGB_pts > >* pts_added_vec, int step,
-                                                                        int disable_append );
-template int Global_map::append_points_to_global_map< pcl::PointXYZRGB >( pcl::PointCloud< pcl::PointXYZRGB >& pc_in, double added_time,
-                                                                          std::vector< std::shared_ptr< RGB_pts > >* pts_added_vec, int step,
-                                                                          int disable_append );
-
+// template int Global_map::append_points_to_global_map< pcl::PointXYZI >( pcl::PointCloud< pcl::PointXYZI >& pc_in, double added_time,
+//                                                                         std::vector< std::shared_ptr< RGB_pts > >* pts_added_vec, int step,
+//                                                                         int disable_append );
+// template int Global_map::append_points_to_global_map< pcl::PointXYZRGB >( pcl::PointCloud< pcl::PointXYZRGB >& pc_in, double added_time,
+//                                                                           std::vector< std::shared_ptr< RGB_pts > >* pts_added_vec, int step,
+//                                                                           int disable_append );
+template int Global_map::append_points_to_global_map< pcl::PointXYZIRGBNormal >( pcl::PointCloud< pcl::PointXYZIRGBNormal >& pc_in, double added_time,
+                                                                                 std::vector< std::shared_ptr< RGB_pts > >* pts_added_vec, int step,
+                                                                                 int disable_append );
 vec_3 g_current_lidar_position;
 
 std::vector< RGB_pt_ptr > retrieve_pts_in_voxels( std::unordered_set< std::shared_ptr< RGB_Voxel > >& neighbor_voxels )
@@ -517,6 +529,12 @@ int Global_map::append_points_to_global_map( pcl::PointCloud< T >& pc_in, double
         }
         std::shared_ptr< RGB_pts > pt_rgb = std::make_shared< RGB_pts >();
         pt_rgb->set_pos( vec_3( pc_in.points[ pt_idx ].x, pc_in.points[ pt_idx ].y, pc_in.points[ pt_idx ].z ) );
+        pt_rgb->set_rgb( vec_3( pc_in.points[ pt_idx ].r, pc_in.points[ pt_idx ].g, pc_in.points[ pt_idx ].b ) );
+        // cout << "xyz:" << pc_in.points[ pt_idx ].x << " " <<  pc_in.points[ pt_idx ].y << " " <<  pc_in.points[ pt_idx ].z << endl;
+        // cout << "rgb:" << (int)pc_in.points[ pt_idx ].r << " " <<  (int)pc_in.points[ pt_idx ].g << " " <<  (int)pc_in.points[ pt_idx ].b << endl;
+        // cout << "xyz:" << pt_rgb->get_pos() << std::endl;
+        // cout << "rgb:" << pt_rgb->get_rgb() << std::endl;
+        // rgb has valid value
         pt_rgb->m_pt_index = m_rgb_pts_vec.size();
         kdtree_pt.m_pt_idx = pt_rgb->m_pt_index;
         m_rgb_pts_vec.push_back( pt_rgb );

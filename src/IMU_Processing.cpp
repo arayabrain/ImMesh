@@ -82,7 +82,7 @@ void ImuProcess::Reset()
     v_imu_.clear();
     IMUpose.clear();
     last_imu_.reset( new sensor_msgs::Imu() );
-    cur_pcl_un_.reset( new PointCloudXYZI() );
+    cur_pcl_un_.reset( new PCLPointCloud() );
 }
 
 void ImuProcess::disable_imu()
@@ -483,7 +483,7 @@ void ImuProcess::Forward( const MeasureGroup &meas, StatesGroup &state_inout, do
 #endif
 }
 
-void ImuProcess::Forward_without_imu( LidarMeasureGroup &meas, StatesGroup &state_inout, PointCloudXYZI &pcl_out )
+void ImuProcess::Forward_without_imu( LidarMeasureGroup &meas, StatesGroup &state_inout, PCLPointCloud &pcl_out )
 {
     const double &pcl_beg_time = meas.lidar_beg_time;
 
@@ -552,7 +552,7 @@ void ImuProcess::Forward_without_imu( LidarMeasureGroup &meas, StatesGroup &stat
     state_inout.pos_end = state_inout.pos_end + state_inout.vel_end * dt;
 }
 
-void ImuProcess::Backward( const LidarMeasureGroup &lidar_meas, StatesGroup &state_inout, PointCloudXYZI &pcl_out )
+void ImuProcess::Backward( const LidarMeasureGroup &lidar_meas, StatesGroup &state_inout, PCLPointCloud &pcl_out )
 {
     /*** undistort each lidar point (backward propagation) ***/
     M3D    R_imu;
@@ -665,7 +665,7 @@ void ImuProcess::Process( const LidarMeasureGroup &lidar_meas, esekfom::esekf< s
 }
 #else
 
-void ImuProcess::Process( LidarMeasureGroup &lidar_meas, StatesGroup &stat, PointCloudXYZI::Ptr cur_pcl_un_ )
+void ImuProcess::Process( LidarMeasureGroup &lidar_meas, StatesGroup &stat, PCLPointCloud::Ptr cur_pcl_un_ )
 {
     double t1, t2, t3;
     t1 = omp_get_wtime();
@@ -752,7 +752,7 @@ void ImuProcess::Process( LidarMeasureGroup &lidar_meas, StatesGroup &stat, Poin
     // cout<<"[ IMU Process ]: Time: "<<t3 - t1<<endl;
 }
 
-void ImuProcess::UndistortPcl( LidarMeasureGroup &lidar_meas, StatesGroup &state_inout, PointCloudXYZI &pcl_out )
+void ImuProcess::UndistortPcl( LidarMeasureGroup &lidar_meas, StatesGroup &state_inout, PCLPointCloud &pcl_out )
 {
     /*** add the imu of the last frame-tail to the of current frame-head ***/
     MeasureGroup meas;
@@ -957,7 +957,7 @@ void ImuProcess::UndistortPcl( LidarMeasureGroup &lidar_meas, StatesGroup &state
     // cout<<"[ IMU Process ]: undistort size: "<<pcl_out.points.size()<<endl;
 }
 
-void ImuProcess::Process2( LidarMeasureGroup &lidar_meas, StatesGroup &stat, PointCloudXYZI::Ptr cur_pcl_un_ )
+void ImuProcess::Process2( LidarMeasureGroup &lidar_meas, StatesGroup &stat, PCLPointCloud::Ptr cur_pcl_un_ )
 {
     double t1, t2, t3;
     t1 = omp_get_wtime();

@@ -42,6 +42,7 @@ different license.
 #include "meshing/mesh_rec_display.hpp"
 #include "meshing/mesh_rec_geometry.hpp"
 #include "tools/tools_thread_pool.hpp"
+#include "custom_point_types.h"
 
 extern Global_map       g_map_rgb_pts_mesh;
 extern Triangle_manager g_triangles_manager;
@@ -66,11 +67,11 @@ static double g_LiDAR_frame_avg_time;
 
 struct Rec_mesh_data_package
 {
-    pcl::PointCloud< pcl::PointXYZI >::Ptr m_frame_pts;
+    PCLPointCloud::Ptr m_frame_pts;
     Eigen::Quaterniond                     m_pose_q;
     Eigen::Vector3d                        m_pose_t;
     int                                    m_frame_idx;
-    Rec_mesh_data_package( pcl::PointCloud< pcl::PointXYZI >::Ptr frame_pts, Eigen::Quaterniond pose_q, Eigen::Vector3d pose_t, int frame_idx )
+    Rec_mesh_data_package( PCLPointCloud::Ptr frame_pts, Eigen::Quaterniond pose_q, Eigen::Vector3d pose_t, int frame_idx )
     {
         m_frame_pts = frame_pts;
         m_pose_q = pose_q;
@@ -89,7 +90,7 @@ extern int                                  g_save_to_offline_bin;
 LiDAR_frame_pts_and_pose_vec                                                                               g_ponintcloud_pose_vec;
 
 
-void incremental_mesh_reconstruction( pcl::PointCloud< pcl::PointXYZI >::Ptr frame_pts, Eigen::Quaterniond pose_q, Eigen::Vector3d pose_t, int frame_idx )
+void incremental_mesh_reconstruction( PCLPointCloud::Ptr frame_pts, Eigen::Quaterniond pose_q, Eigen::Vector3d pose_t, int frame_idx )
 {
     while ( g_flag_pause )
     {
@@ -143,6 +144,7 @@ void incremental_mesh_reconstruction( pcl::PointCloud< pcl::PointXYZI >::Ptr fra
             std::unordered_set< std::shared_ptr< RGB_Voxel > > neighbor_voxels;
             neighbor_voxels.insert( voxel );
             g_mutex_append_map.lock();
+            //points in voxel
             std::vector< RGB_pt_ptr > pts_in_voxels = retrieve_pts_in_voxels( neighbor_voxels );
             if ( pts_in_voxels.size() < 3 )
             {
@@ -235,6 +237,7 @@ void incremental_mesh_reconstruction( pcl::PointCloud< pcl::PointXYZI >::Ptr fra
     {
         Triangle_set triangle_idx = triangle_list.second;
         total_add_triangle += triangle_idx.size();
+        //Triangle_set -> Triangle_ptr
         for ( auto triangle_ptr : triangle_idx )
         {
             Triangle_ptr tri_ptr = g_triangles_manager.insert_triangle( triangle_ptr->m_tri_pts_id[ 0 ], triangle_ptr->m_tri_pts_id[ 1 ],
@@ -325,14 +328,14 @@ void start_mesh_threads( int maximum_threads = 20 )
     }
 }
 
-void reconstruct_mesh_from_pointcloud( pcl::PointCloud< pcl::PointXYZI >::Ptr frame_pts, double minimum_pts_distance )
+void reconstruct_mesh_from_pointcloud( PCLPointCloud::Ptr frame_pts, double minimum_pts_distance )
 {
     start_mesh_threads();
     cout << "=== reconstruct_mesh_from_pointcloud ===" << endl;
     cout << "Input pointcloud have " << frame_pts->points.size() << " points." << endl;
-    pcl::PointCloud< pcl::PointXYZI >::Ptr all_cloud_ds( new pcl::PointCloud< pcl::PointXYZI > );
+    PCLPointCloud::Ptr all_cloud_ds( new PCLPointCloud );
 
-    pcl::VoxelGrid< pcl::PointXYZI > sor;
+    pcl::VoxelGrid< PointType > sor;
     sor.setInputCloud( frame_pts );
     sor.setLeafSize( minimum_pts_distance, minimum_pts_distance, minimum_pts_distance );
     sor.filter( *all_cloud_ds );
@@ -360,7 +363,7 @@ void open_log_file()
     }
 }
 
-std::vector< vec_4 > convert_pcl_pointcloud_to_vec( pcl::PointCloud< pcl::PointXYZI > &pointcloud )
+std::vector< vec_4 > convert_pcl_pointcloud_to_vec( pcl::PointCloud< PointType > &pointcloud )
 {
     int                  pt_size = pointcloud.points.size();
     std::vector< vec_4 > eigen_pt_vec( pt_size );
@@ -384,8 +387,9 @@ void Voxel_mapping::map_incremental_grow()
             std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
         }
         // startTime = clock();
-        pcl::PointCloud< pcl::PointXYZI >::Ptr world_lidar( new pcl::PointCloud< pcl::PointXYZI > );
-        pcl::PointCloud< pcl::PointXYZI >::Ptr world_lidar_full( new pcl::PointCloud< pcl::PointXYZI > );
+        //TODO: templateにする
+        pcl::PointCloud< PointType >::Ptr world_lidar( new pcl::PointCloud< PointType > );
+        pcl::PointCloud< PointType >::Ptr world_lidar_full( new pcl::PointCloud< PointType > );
 
         std::vector< Point_with_var > pv_list;
         // TODO: saving pointcloud to file

@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <memory>
 #include <pcl/point_types.h>
+#include "custom_point_types.h"
 #include "tools_eigen.hpp"
 #define EPSS 1e-6
 #define Minimal_Unbalanced_Tree_Size 10

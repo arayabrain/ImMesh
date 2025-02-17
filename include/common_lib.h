@@ -162,7 +162,7 @@ struct LidarMeasureGroup
 {
     double                       lidar_beg_time;
     double                       last_update_time;
-    PointCloudXYZI::Ptr          lidar;
+    PCLPointCloud::Ptr          lidar;
     deque< struct MeasureGroup > measures;
     bool                         is_lidar_end;
     int                          lidar_scan_index_now;
@@ -170,7 +170,7 @@ struct LidarMeasureGroup
     {
         lidar_beg_time = 0.0;
         is_lidar_end = false;
-        this->lidar.reset( new PointCloudXYZI() );
+        this->lidar.reset( new PCLPointCloud() );
         this->measures.clear();
         lidar_scan_index_now = 0;
         last_update_time = 0.0;
