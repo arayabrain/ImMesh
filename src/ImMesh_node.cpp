@@ -185,9 +185,9 @@ void get_last_avr_pose( int current_frame_idx, Eigen::Quaterniond &q_avr, vec_3 
     Eigen::Quaterniond q_first;
     for ( int frame_idx = frame_s; frame_idx < current_frame_idx; frame_idx++ )
     {
-        if ( g_eigen_vec_vec[ frame_idx ].second.size() != 0 )
+        if ( std::get<1>(g_eigen_vec_vec[ frame_idx ]).size() != 0 )
         {
-            Eigen::Quaterniond pose_q( g_eigen_vec_vec[ frame_idx ].second.head< 4 >() );
+            Eigen::Quaterniond pose_q( std::get<1>(g_eigen_vec_vec[ frame_idx ]).head< 4 >() );
             pose_q.normalize();
             if ( frame_count == 0 )
             {
@@ -195,7 +195,7 @@ void get_last_avr_pose( int current_frame_idx, Eigen::Quaterniond &q_avr, vec_3 
             }
             q_avr = q_avr * pose_q;
             log_angle_acc += Sophus::SO3d( q_first.inverse() * pose_q ).log();
-            t_vec = t_vec + g_eigen_vec_vec[ frame_idx ].second.block( 4, 0, 3, 1 );
+            t_vec = t_vec + std::get<1>(g_eigen_vec_vec[ frame_idx ]).block( 4, 0, 3, 1 );
             frame_count++;
         }
     }

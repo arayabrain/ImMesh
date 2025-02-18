@@ -13,7 +13,7 @@ extern int    g_force_update_flag;
 extern Global_map       g_map_rgb_pts_mesh;
 extern Triangle_manager g_triangles_manager;
 // extern Delaunay g_delaunay;
-extern std::vector< std::pair< std::vector< vec_4 >, Eigen::Matrix< double, NUMBER_OF_POSE_SIZE, 1 > > > g_eigen_vec_vec;
+extern std::vector< std::tuple< std::vector< vec_4 >, Eigen::Matrix< double, NUMBER_OF_POSE_SIZE, 1 >, std::vector< vec_3 > > > g_eigen_vec_vec;
 
 double minimum_cell_volume = 0.2 * 0.2 * 0.2 * 0.0;
 double minimum_height = 0.000;

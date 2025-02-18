@@ -107,7 +107,6 @@ mat_3_3 RGB_pts::get_rgb_cov()
 
 vec_3 RGB_pts::get_rgb()
 {
-    // std::cout << (int)m_rgb[0] << " " << (int)m_rgb[1] << " " << (int)m_rgb[2] << std::endl;
     return vec_3( m_rgb[ 0 ], m_rgb[ 1 ], m_rgb[ 2 ] ) / m_first_obs_exposure_time;
 }
 
@@ -529,11 +528,7 @@ int Global_map::append_points_to_global_map( pcl::PointCloud< T >& pc_in, double
         }
         std::shared_ptr< RGB_pts > pt_rgb = std::make_shared< RGB_pts >();
         pt_rgb->set_pos( vec_3( pc_in.points[ pt_idx ].x, pc_in.points[ pt_idx ].y, pc_in.points[ pt_idx ].z ) );
-        pt_rgb->set_rgb( vec_3( pc_in.points[ pt_idx ].r, pc_in.points[ pt_idx ].g, pc_in.points[ pt_idx ].b ) );
-        // cout << "xyz:" << pc_in.points[ pt_idx ].x << " " <<  pc_in.points[ pt_idx ].y << " " <<  pc_in.points[ pt_idx ].z << endl;
-        // cout << "rgb:" << (int)pc_in.points[ pt_idx ].r << " " <<  (int)pc_in.points[ pt_idx ].g << " " <<  (int)pc_in.points[ pt_idx ].b << endl;
-        // cout << "xyz:" << pt_rgb->get_pos() << std::endl;
-        // cout << "rgb:" << pt_rgb->get_rgb() << std::endl;
+        pt_rgb->set_rgb( vec_3( pc_in.points[ pt_idx ].b, pc_in.points[ pt_idx ].g, pc_in.points[ pt_idx ].r ) );
         // rgb has valid value
         pt_rgb->m_pt_index = m_rgb_pts_vec.size();
         kdtree_pt.m_pt_idx = pt_rgb->m_pt_index;

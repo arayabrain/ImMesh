@@ -205,6 +205,26 @@ class Point_cloud_shader
     }
 
     template < typename T, int option = EIGEN_DATA_TYPE_DEFAULT_OPTION >
+    void set_pointcloud( std::vector< Eigen::Matrix< T, 4, 1, option > >& _pts_color_of_maps, std::vector< vec_3 >  pt_color,
+                         bool if_rviz_like_color = false )
+    {
+        m_pts_vector.resize( _pts_color_of_maps.size() );
+        for ( int i = 0; i < _pts_color_of_maps.size(); i++ )
+        {
+            for ( int j = 0; j < 3; j++ )
+            {
+                m_pts_vector[ i ].m_pos[j] = _pts_color_of_maps[ i ]( j );
+            }
+            m_pts_vector[ i ].pack_color( pt_color[i][0],  pt_color[i][1],  pt_color[i][2]);
+        }
+        if ( if_rviz_like_color )
+        {
+            make_rviz_like_color();
+        }
+        init_data_buffer();
+    }
+
+    template < typename T, int option = EIGEN_DATA_TYPE_DEFAULT_OPTION >
     void set_pointcloud( std::vector< Eigen::Matrix< T, 4, 1, option > >& _pts_color_of_maps, vec_3 pt_color = vec_3( 1.0, 1.0, 1.0 ),
                          bool if_rviz_like_color = false )
     {

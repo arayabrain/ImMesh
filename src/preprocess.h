@@ -177,6 +177,7 @@ class Preprocess
     void velodyne32_handler( const sensor_msgs::PointCloud2::ConstPtr &msg );
     void xt32_handler( const sensor_msgs::PointCloud2::ConstPtr &msg );
     void l515_handler( const sensor_msgs::PointCloud2::ConstPtr &msg );
+    void custom_handler(const sensor_msgs::PointCloud2::ConstPtr &msg);
     void give_feature( PCLPointCloud &pl, vector< orgtype > &types );
     void pub_func( PCLPointCloud &pl, const ros::Time &ct );
     int  plane_judge( const PCLPointCloud &pl, vector< orgtype > &types, uint i, uint &i_nex, Eigen::Vector3d &curr_direct );

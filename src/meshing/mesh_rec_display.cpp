@@ -187,7 +187,7 @@ void display_current_LiDAR_pts( int current_frame_idx, double pts_size, vec_4f c
         return;
     }
     g_LiDAR_point_shader.set_point_attr( pts_size );
-    g_LiDAR_point_shader.set_pointcloud( g_eigen_vec_vec[ current_frame_idx ].first, vec_3( 1.0, 1.0, 1.0 ) );
+    g_LiDAR_point_shader.set_pointcloud( std::get<0>(g_eigen_vec_vec[ current_frame_idx ]), std::get<2>(g_eigen_vec_vec[ current_frame_idx ]));
     g_LiDAR_point_shader.draw( g_gl_camera.m_gl_cam.m_glm_projection_mat,
                                Common_tools::eigen2glm( g_gl_camera.m_gl_cam.m_camera_pose_mat44_inverse ) );
 }
@@ -302,8 +302,8 @@ void display_camera_traj( float display_size )
 void draw_camera_pose( int current_frame_idx, float pt_disp_size, float display_cam_size )
 {
 
-    Eigen::Quaterniond pose_q( g_eigen_vec_vec[ current_frame_idx ].second.head< 4 >() );
-    vec_3              pose_t = g_eigen_vec_vec[ current_frame_idx ].second.block( 4, 0, 3, 1 );
+    Eigen::Quaterniond pose_q( std::get<1>(g_eigen_vec_vec[ current_frame_idx ]).head< 4 >() );
+    vec_3              pose_t = std::get<1>(g_eigen_vec_vec[ current_frame_idx ]).block( 4, 0, 3, 1 );
     mat_3_3            lidar_frame_to_camera_frame;
     lidar_frame_to_camera_frame << 0, 0, 1, -1, 0, 0, 0, -1, 0;
     pose_q = Eigen::Quaterniond( pose_q.toRotationMatrix() * lidar_frame_to_camera_frame );
@@ -322,9 +322,9 @@ void draw_camera_trajectory( int current_frame_idx, float pt_disp_size )
     pt_camera_traj.clear();
     for ( int i = 0; i < current_frame_idx; i++ )
     {
-        if ( g_eigen_vec_vec[ i ].second.size() >= 7 )
+        if ( std::get<1>(g_eigen_vec_vec[ i ]).size() >= 7 )
         {
-            pt_camera_traj.push_back( g_eigen_vec_vec[ i ].second.block( 4, 0, 3, 1 ) );
+            pt_camera_traj.push_back( std::get<1>(g_eigen_vec_vec[ i ]).block( 4, 0, 3, 1 ) );
         }
     }
     display_camera_traj( pt_disp_size );

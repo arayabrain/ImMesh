@@ -102,10 +102,11 @@ void incremental_mesh_reconstruction( PCLPointCloud::Ptr frame_pts, Eigen::Quate
     pose_vec.block( 4, 0, 3, 1 ) = pose_t;
     for ( int i = 0; i < frame_pts->points.size(); i++ )
     {
-        g_eigen_vec_vec[ frame_idx ].first.emplace_back( frame_pts->points[ i ].x, frame_pts->points[ i ].y, frame_pts->points[ i ].z,
-                                                         frame_pts->points[ i ].intensity );
+        std::get<0>(g_eigen_vec_vec[ frame_idx ]).emplace_back( frame_pts->points[ i ].x, frame_pts->points[ i ].y, frame_pts->points[ i ].z,
+                                                         frame_pts->points[ i ].intensity);
+        std::get<2>(g_eigen_vec_vec[ frame_idx ]).emplace_back( (int)frame_pts->points[i].b, (int)frame_pts->points[i].g, (int)frame_pts->points[i].r );
     }
-    g_eigen_vec_vec[ frame_idx ].second = pose_vec;
+    std::get<1>(g_eigen_vec_vec[ frame_idx ]) = pose_vec;
     // g_eigen_vec_vec.push_back( std::make_pair( empty_vec, pose_vec ) );
     // TODO : add time tic toc
 
@@ -199,11 +200,11 @@ void incremental_mesh_reconstruction( PCLPointCloud::Ptr frame_pts, Eigen::Quate
             // Refine normal index
             for ( auto triangle_ptr : triangles_to_add )
             {
-                correct_triangle_index( triangle_ptr, g_eigen_vec_vec[ frame_idx ].second.block( 4, 0, 3, 1 ), voxel->m_short_axis );
+                correct_triangle_index( triangle_ptr, std::get<1>(g_eigen_vec_vec[ frame_idx ]).block( 4, 0, 3, 1 ), voxel->m_short_axis );
             }
             for ( auto triangle_ptr : existing_triangle )
             {
-                correct_triangle_index( triangle_ptr, g_eigen_vec_vec[ frame_idx ].second.block( 4, 0, 3, 1 ), voxel->m_short_axis );
+                correct_triangle_index( triangle_ptr, std::get<1>(g_eigen_vec_vec[ frame_idx ]).block( 4, 0, 3, 1 ), voxel->m_short_axis );
             }
 
             std::unique_lock< std::mutex > lock( mtx_triangle_lock );
@@ -262,7 +263,7 @@ void incremental_mesh_reconstruction( PCLPointCloud::Ptr frame_pts, Eigen::Quate
     }
     else
     {
-        if ( g_eigen_vec_vec[ g_current_frame + 1 ].second.size() > 7 )
+        if ( std::get<1>(g_eigen_vec_vec[ g_current_frame + 1 ]).size() > 7 )
         {
             g_current_frame++;
         }
@@ -387,7 +388,6 @@ void Voxel_mapping::map_incremental_grow()
             std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
         }
         // startTime = clock();
-        //TODO: templateにする
         pcl::PointCloud< PointType >::Ptr world_lidar( new pcl::PointCloud< PointType > );
         pcl::PointCloud< PointType >::Ptr world_lidar_full( new pcl::PointCloud< PointType > );
 

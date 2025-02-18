@@ -30,7 +30,7 @@
 #include <CGAL/Triangulation_vertex_base_with_info_3.h>
 
 #define NUMBER_OF_POSE_SIZE -1
-typedef std::vector< std::pair< std::vector< vec_4 >, Eigen::Matrix< double, NUMBER_OF_POSE_SIZE, 1 > > > LiDAR_frame_pts_and_pose_vec;
+typedef std::vector< std::tuple< std::vector< vec_4 >, Eigen::Matrix< double, NUMBER_OF_POSE_SIZE, 1 >, std::vector< vec_3 > > > LiDAR_frame_pts_and_pose_vec;
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel                     K;
 

@@ -1,4 +1,4 @@
-#include "custom_point_types.h" // あなたのカスタムポイント定義
+#include "custom_point_types.h"
 #include <pcl/filters/filter.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/kdtree/kdtree_flann.h>
@@ -37,7 +37,6 @@ namespace pcl {
                 else if (blob.fields[d].name == "rgb") rgb_idx = d;
                 else if (blob.fields[d].name == "intensity") intensity_idx = d;
             }
-            // std::cout << x_idx << " " << y_idx << " " << z_idx << " " << rgb_idx << " " << intensity_idx << std::endl;
             uint8_t* point_data = blob.data.data();
             for (size_t i = 0; i < cloud.size(); ++i) {
                 // XYZ
@@ -61,14 +60,13 @@ namespace pcl {
 
                     uint8_t* rgb_bytes = reinterpret_cast<uint8_t*>(&rgb_float);
                     // バイト順序を修正
-                    memcpy(&cloud.points[i].r, &rgb_bytes[0], sizeof(uint8_t));
+                    memcpy(&cloud.points[i].r, &rgb_bytes[2], sizeof(uint8_t));
                     memcpy(&cloud.points[i].g, &rgb_bytes[1], sizeof(uint8_t));
-                    memcpy(&cloud.points[i].b, &rgb_bytes[2], sizeof(uint8_t));
+                    memcpy(&cloud.points[i].b, &rgb_bytes[0], sizeof(uint8_t));
                 }
                 if (intensity_idx >= 0) {
                     memcpy(&cloud.points[i].intensity, point_data + blob.point_step * i + blob.fields[intensity_idx].offset, sizeof(float));
                 }
-                // std::cout << cloud.points[i].x <<  " " <<  cloud.points[i].y << " " << cloud.points[i].z  << " "  << (int)cloud.points[i].r << " " << (int)cloud.points[i].g << " " << (int)cloud.points[i].b  << " " << cloud.points[i].intensity << std::endl;
             }
             return 0;
         }
