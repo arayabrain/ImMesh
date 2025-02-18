@@ -45,9 +45,9 @@ voxel:
     min_eigen_value: 0.01
     match_s: 0.9
     sigma_num: 3
-    voxel_size: 0.05
+    voxel_size: 0.5
     max_layer: 2
-    max_points_size: 25
+    max_points_size: 100
     layer_init_size: [5,5,5,5,5]
     
 publish:
