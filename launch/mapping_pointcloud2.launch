@@ -4,7 +4,7 @@
 	<rosparam command="load" file="$(find ImMesh)/config/offline_pointcloud2.yaml" />
 	<param name="meshing/distance_scale" type="double" value="1.0" /> 
 	<param name="gui_font_size" type="int" value="20" /> 
-	
+	<param name="display_imgui" type="bool" value="false" /> 
 	<node pkg="ImMesh" type="ImMesh_mapping" name="laserMapping" output="screen" launch-prefix="">
 	<!-- <node pkg="ImMesh" type="ImMesh_mapping" name="laserMapping" output="screen" launch-prefix='gdb -ex "break ImMesh_mesh_reconstruction.cpp:107" run -args'> -->
        <remap from="livox/imu" to="livox/imu_192_168_148_20"/>

@@ -943,7 +943,7 @@ void Preprocess::custom_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
       if (yaw_angle <= -180.0)
         yaw_angle += 360.0;
 
-      // added_pt.curvature = pl_orig.points[i].t * time_unit_scale;
+      added_pt.curvature = pl_orig.points[i].curvature;
       // if(pl_orig.points[i].ring < N_SCANS)
       // {
       //   pl_buff[pl_orig.points[i].ring].push_back(added_pt);
@@ -990,7 +990,7 @@ void Preprocess::custom_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
       added_pt.normal_x = 0;
       added_pt.normal_y = 0;
       added_pt.normal_z = 0;
-      // added_pt.curvature = pl_orig.points[i].t * time_unit_scale; // curvature unit: ms
+      added_pt.curvature = pl_orig.points[i].curvature; // curvature unit: ms
       added_pt.r = pl_orig.points[i].r;
       added_pt.g = pl_orig.points[i].g;
       added_pt.b = pl_orig.points[i].b;

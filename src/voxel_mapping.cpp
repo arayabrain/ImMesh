@@ -2002,6 +2002,7 @@ int Voxel_mapping::service_LiDAR_update()
         // #ifdef DEPLOY
         publish_mavros( mavros_pose_publisher );
         // #endif
+        // TODO: publish mesh
 
         /*** Debug variables ***/
         frame_num++;
